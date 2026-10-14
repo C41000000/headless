@@ -5,18 +5,21 @@ declare(strict_types=1);
 namespace App\Actions\Central\Auth;
 
 use App\DTOs\Central\Auth\LoginDTO;
+use App\DTOs\Central\Auth\LoginResultDTO;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\JWTGuard;
 
 final readonly class LoginAction
 {
     /**
-     * @return array{token: string, user: User, expires_in: int}
-     *
      * @throws ValidationException
      */
-    public function execute(LoginDTO $loginDto): array
+    public function execute(LoginDTO $loginDto): LoginResultDTO
     {
+        /** @var JWTGuard $guard */
+        $guard = auth('api');
+
         $credentials = [
             'email' => $loginDto->email,
             'password' => $loginDto->password,
@@ -24,7 +27,7 @@ final readonly class LoginAction
         ];
 
         /** @var string|false $token */
-        $token = auth('api')->attempt($credentials);
+        $token = $guard->attempt($credentials);
 
         if (! $token) {
             throw ValidationException::withMessages([
@@ -33,14 +36,14 @@ final readonly class LoginAction
         }
 
         /** @var User $user */
-        $user = auth('api')->user();
+        $user = $guard->user();
 
-        $ttlInSeconds = auth('api')->factory()->getTTL() * 60;
+        $ttlInSeconds = $guard->factory()->getTTL() * 60;
 
-        return [
-            'token' => $token,
-            'user' => $user,
-            'expires_in' => $ttlInSeconds,
-        ];
+        return new LoginResultDTO(
+            token: $token,
+            user: $user,
+            expiresIn: $ttlInSeconds,
+        );
     }
 }

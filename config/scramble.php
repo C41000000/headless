@@ -52,11 +52,45 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '',
+        'description' => <<<'MD'
+            API do banco central da plataforma: autenticação da equipe, usuários, tenants e domínios.
+
+            ## Autenticação
+
+            Faça login em `POST /api/v1/auth/login` e envie o `access_token` recebido em todas as outras rotas:
+
+            ```
+            Authorization: Bearer {access_token}
+            ```
+
+            ## Permissões
+
+            Cada rota exige uma permission, indicada na descrição dela. As roles atuais são:
+
+            | Role | Permissions |
+            |---|---|
+            | `super-admin` | todas |
+            | `admin` | tudo, exceto excluir (`*.delete`) |
+            | `employee` | apenas visualizar (`*.view`) |
+
+            Sem a permission, a resposta é `403`. Edição, desativação e exclusão de usuários também respeitam a hierarquia: super-admin só é gerenciado por super-admin; admin, por admin ou super-admin.
+
+            ## Domínios
+
+            A API central só responde nos domínios centrais da plataforma. Em domínios de tenant, essas rotas devolvem `404`.
+
+            ## Erros
+
+            - `401`: token ausente, inválido ou expirado.
+            - `403`: sem permissão para a ação.
+            - `404`: recurso não encontrado (inclui tenants excluídos).
+            - `422`: dados inválidos; o corpo traz `errors` por campo.
+            - `429`: limite de tentativas de login excedido.
+            MD,
     ],
 
     'ui' => [
-        'title' => null,
+        'title' => 'Headless API',
     ],
 
     /*
@@ -67,7 +101,7 @@ return [
         'enabled' => env('SCRAMBLE_DEV_TOOLS', env('APP_DEBUG', false)),
     ],
 
-    'renderer' => 'elements',
+    'renderer' => 'scalar',
 
     'renderers' => [
         /*
@@ -88,10 +122,13 @@ return [
          */
         'scalar' => [
             'view' => 'scramble::scalar',
-            'cdn' => 'https://cdn.jsdelivr.net/npm/@scalar/api-reference',
+            // Versão fixa: sem ela o CDN serve sempre a última e a página pode mudar sozinha
+            'cdn' => 'https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.2/dist/browser/standalone.js',
             'theme' => 'laravel',
-            'proxyUrl' => 'https://proxy.scalar.com',
-            'darkMode' => false,
+            // Sem proxy: a doc é servida no mesmo domínio da API, e o proxy do Scalar
+            // faria os requests do "Try it" (com o token Bearer) passarem por terceiros.
+            'proxyUrl' => null,
+            'darkMode' => true,
             'showDeveloperTools' => 'never',
             'agent' => ['disabled' => true],
             'credentials' => 'include',

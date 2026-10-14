@@ -78,6 +78,9 @@ class AppServiceProvider extends ServiceProvider
     private function configureScramble(): void
     {
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
+            // Título fixo: o APP_NAME não muda aqui porque é o prefixo das chaves do cache
+            $openApi->info->title = 'Headless API';
+
             $openApi->secure(
                 SecurityScheme::http('bearer', 'JWT')
             );

@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Central\Auth;
 
+use App\DTOs\Central\Auth\LoginResultDTO;
 use App\Http\Resources\Central\Users\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property LoginResultDTO $resource
+ */
 class LoginResource extends JsonResource
 {
     /**
@@ -23,7 +27,7 @@ class LoginResource extends JsonResource
              *
              * @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
              */
-            'access_token' => $this->resource['token'],
+            'access_token' => $this->resource->token,
 
             /**
              * Tipo do token gerado.
@@ -37,12 +41,12 @@ class LoginResource extends JsonResource
              *
              * @example 3600
              */
-            'expires_in' => $this->resource['expires_in'],
+            'expires_in' => $this->resource->expiresIn,
 
             /**
              * Dados do usuário autenticado.
              */
-            'user' => UserResource::make($this->resource['user']),
+            'user' => UserResource::make($this->resource->user),
         ];
     }
 }
