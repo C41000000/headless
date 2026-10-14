@@ -4,7 +4,7 @@ API RESTful headless desenvolvida para gerenciamento central da plataforma e pro
 
 ---
 
-## 🚀 Tecnologias e Stack
+## Tecnologias e Stack
 
 * **Runtime & Framework:** PHP 8.5+ e Laravel 12+
 * **Servidor de Alta Performance:** [Laravel Octane](https://laravel.com/docs/octane) + [RoadRunner](https://roadrunner.dev/) (com hot reload via Chokidar em ambiente de desenvolvimento)
@@ -18,7 +18,7 @@ API RESTful headless desenvolvida para gerenciamento central da plataforma e pro
 
 ---
 
-## 🏛️ Padrões Arquiteturais e Decisões de Design
+## Padrões Arquiteturais e Decisões de Design
 
 * **Single-Action Controllers:** Controllers enxutos e invocáveis (`__invoke`), delegando regras de negócio para **Actions** dedicadas.
 * **Data Transfer Objects (DTOs):** Validação em camadas através de **FormRequests** convertidos diretamente para **DTOs** tipados com `spatie/laravel-data`.
@@ -30,7 +30,7 @@ API RESTful headless desenvolvida para gerenciamento central da plataforma e pro
 
 ---
 
-## 📦 Serviços e Portas Locais (Docker)
+## Serviços e Portas Locais (Docker)
 
 | Serviço | Porta Host | Porta Container | Descrição |
 | :--- | :--- | :--- | :--- |
@@ -42,7 +42,7 @@ API RESTful headless desenvolvida para gerenciamento central da plataforma e pro
 
 ---
 
-## 🛠️ Como Subir o Projeto Localmente
+## Como Subir o Projeto Localmente
 
 ### Pré-requisitos
 * [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados.
@@ -84,11 +84,11 @@ docker compose exec app php artisan user:create
 
 ---
 
-## 📖 Documentação da API
+## Documentação da API
 
 A documentação OpenAPI interativa é gerada automaticamente pelo **Scramble** e fica disponível em:
 
-👉 **[http://localhost:8001/docs/api](http://localhost:8001/docs/api)**
+ **[http://localhost:8001/docs/api](http://localhost:8001/docs/api)**
 
 ### Fluxo de Autenticação
 1. Realize a autenticação em `POST /api/v1/auth/login` informando `email` e `password`.
@@ -99,7 +99,7 @@ A documentação OpenAPI interativa é gerada automaticamente pelo **Scramble** 
 
 ---
 
-## 🔐 Níveis de Acesso e Permissões (RBAC)
+## Níveis de Acesso e Permissões (RBAC)
 
 O sistema possui controle hierárquico onde usuários só podem gerenciar contas de nível igual ou inferior ao seu:
 
@@ -113,7 +113,7 @@ O sistema possui controle hierárquico onde usuários só podem gerenciar contas
 
 ---
 
-## 🧪 Qualidade de Código e Testes
+## Qualidade de Código e Testes
 
 ### Executar a Suíte de Testes (Pest)
 ```bash
