@@ -1,0 +1,88 @@
+x-app: &app
+  build:
+    context: .
+    target: development
+    args:
+      UID: ${UID:-1000}
+      GID: ${GID:-1000}
+  image: headless-app:dev
+  volumes:
+    - .:/var/www/html
+  environment: &app-env
+    APP_ENV: local
+    DB_CONNECTION: pgsql
+    DB_HOST: pgsql
+    DB_PORT: 5432
+    DB_DATABASE: ${DB_DATABASE:-headless}
+    DB_USERNAME: ${DB_USERNAME:-headless}
+    DB_PASSWORD: ${DB_PASSWORD:-secret}
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    REDIS_PASSWORD: ""
+    QUEUE_CONNECTION: redis
+    CACHE_STORE: redis
+  depends_on:
+    pgsql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+    command: ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--watch"]
+    ports:
+      - "${APP_PORT:-8001}:8000"
+
+  horizon:
+    <<: *app
+    environment:
+      <<: *app-env
+      RUN_MIGRATIONS: "false"
+    command: ["php", "artisan", "horizon"]
+    healthcheck:
+      disable: true
+
+  scheduler:
+    <<: *app
+    environment:
+      <<: *app-env
+      RUN_MIGRATIONS: "false"
+    command: ["php", "artisan", "schedule:work"]
+    healthcheck:
+      disable: true
+
+  pgsql:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-headless}
+      POSTGRES_USER: ${DB_USERNAME:-headless}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${FORWARD_DB_PORT:-8006}:5432"
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${FORWARD_REDIS_PORT:-8005}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgsql-data:
+  redis-data:
