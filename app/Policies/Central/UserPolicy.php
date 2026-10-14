@@ -6,6 +6,7 @@ namespace App\Policies\Central;
 
 use App\Models\User;
 use App\Support\Enums\PermissionName;
+use App\Support\Enums\RoleName;
 
 class UserPolicy
 {
@@ -38,7 +39,19 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->checkPermissionTo(PermissionName::UsersUpdate);
+        return $user->checkPermissionTo(PermissionName::UsersUpdate)
+            && $this->outranksOrEquals($user, $model);
+    }
+
+    /**
+     * Determine whether the user can activate/deactivate the model. Ninguém
+     * altera o próprio status, para não se trancar fora do sistema.
+     */
+    public function toggleStatus(User $user, User $model): bool
+    {
+        return $user->isNot($model)
+            && $user->checkPermissionTo(PermissionName::UsersToggleStatus)
+            && $this->outranksOrEquals($user, $model);
     }
 
     /**
@@ -47,11 +60,24 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->isNot($model) && $user->checkPermissionTo(PermissionName::UsersDelete);
+        return $user->isNot($model)
+            && $user->checkPermissionTo(PermissionName::UsersDelete)
+            && $this->outranksOrEquals($user, $model);
     }
 
-    public function ToggleStatus(User $user, User $model): bool
+    /**
+     * Super admin só é gerenciado por super admin; admin, por admin ou super admin.
+     */
+    private function outranksOrEquals(User $user, User $model): bool
     {
-        return $user->checkPermissionTo(PermissionName::UsersToggleStatus);
+        return $this->level($user) >= $this->level($model);
+    }
+
+    private function level(User $user): int
+    {
+        // loadMissing evita LazyLoadingViolation quando o model veio de uma coleção
+        return $user->loadMissing('roles')->getRoleNames()
+            ->map(fn (string $name) => RoleName::tryFrom($name)?->level() ?? 0)
+            ->max() ?? 0;
     }
 }

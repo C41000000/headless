@@ -11,6 +11,19 @@ enum RoleName: string
     case Employee = 'employee';
 
     /**
+     * Nível na hierarquia: só se gerencia (edita, desativa, exclui) quem tem
+     * nível igual ou menor. Usuário sem role conhecida fica no nível 0.
+     */
+    public function level(): int
+    {
+        return match ($this) {
+            self::SuperAdmin => 3,
+            self::Admin => 2,
+            self::Employee => 1,
+        };
+    }
+
+    /**
      * Listas explícitas (exceto o super-admin): uma permission nova só chega ao
      * admin ou ao funcionário quando for adicionada aqui de propósito.
      *

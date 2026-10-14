@@ -8,14 +8,13 @@ use App\Actions\Central\Users\ToggleUserStatusAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Central\Users\UserResource;
 use App\Models\User;
-use App\Support\Enums\PermissionName;
 use Illuminate\Support\Facades\Gate;
 
 final class ToggleUserStatusController extends Controller
 {
     public function __invoke(User $user, ToggleUserStatusAction $action): UserResource
     {
-        Gate::authorize(PermissionName::UsersToggleStatus);
+        Gate::authorize('toggleStatus', $user);
 
         $updatedUser = $action->execute($user);
 
