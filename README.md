@@ -1,58 +1,142 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Headless Multi-Tenant API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API RESTful headless desenvolvida para gerenciamento central da plataforma e provisionamento de múltiplos tenants (arquitetura *database-per-tenant*). Projetada para alta concorrência e baixa latência utilizando **Laravel Octane** com **RoadRunner**, **PostgreSQL 17** e **Redis 7**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Tecnologias e Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* **Runtime & Framework:** PHP 8.5+ e Laravel 12+
+* **Servidor de Alta Performance:** [Laravel Octane](https://laravel.com/docs/octane) + [RoadRunner](https://roadrunner.dev/) (com hot reload via Chokidar em ambiente de desenvolvimento)
+* **Bancos de Dados:** [PostgreSQL 17](https://www.postgresql.org/) (conexões separadas para banco central e bancos tenant)
+* **Filas, Cache e Locks Distribuídos:** [Redis 7](https://redis.io/) + [Laravel Horizon](https://laravel.com/docs/horizon)
+* **Multi-Tenancy:** [stancl/tenancy](https://tenancyforlaravel.com/) (provisionamento dinâmico de banco por tenant)
+* **Autenticação:** JWT ([tymon/jwt-auth](https://jwt-auth.readthedocs.io/))
+* **Autorização (RBAC):** [spatie/laravel-permission](https://spatie.be/docs/laravel-permission) com Backed Enums e hierarquia de cargos
+* **Documentação OpenAPI:** [Dedoc Scramble](https://scramble.dedoc.co/) (OpenAPI / Swagger interativo)
+* **Testes & Qualidade:** [Pest PHP v5](https://pestphp.com/), [Larastan / PHPStan](https://github.com/larastan/larastan) e [Laravel Pint](https://laravel.com/docs/pint)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🏛️ Padrões Arquiteturais e Decisões de Design
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* **Single-Action Controllers:** Controllers enxutos e invocáveis (`__invoke`), delegando regras de negócio para **Actions** dedicadas.
+* **Data Transfer Objects (DTOs):** Validação em camadas através de **FormRequests** convertidos diretamente para **DTOs** tipados com `spatie/laravel-data`.
+* **UUIDs Públicos (`HasPublicUuid`):** Identificadores expostos publicamente via UUID para Route Model Binding, preservando chaves primárias inteiras (`bigserial`) para performance de indexação interna e foreign keys.
+* **Resiliência no Provisionamento de Tenants:** O provisionamento de schema e migrations de cada tenant roda após o commit do banco central. Se o provisionamento falhar, a action remove o registro do tenant para não deixar registros órfãos nem prender os domínios solicitados.
+* **Segurança contra Race Conditions:** Uso de `lockForUpdate` na deleção de domínios para garantir que nenhum tenant fique sem ao menos um domínio ativo.
+* **Lock Distribuído em Deploys (`migrate:wait`):** O entrypoint dos containers utiliza `Cache::lock('deploy:migrate')->block()` para garantir que apenas uma réplica execute migrations e seeders por vez, enquanto as demais aguardam a liberação do lock antes de iniciar o boot do RoadRunner.
+* **Strict Typing & Atributos PHP 8:** `declare(strict_types=1);` em todos os arquivos e uso de atributos nativos do Eloquent (`#[UsePolicy]`, `#[Fillable]`, `#[Hidden]`).
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## 📦 Serviços e Portas Locais (Docker)
 
-## Agentic Development
+| Serviço | Porta Host | Porta Container | Descrição |
+| :--- | :--- | :--- | :--- |
+| **app** | `8001` | `8000` | API Laravel Octane + RoadRunner (com hot reload) |
+| **horizon** | - | - | Worker de filas Redis com dashboard Horizon |
+| **scheduler** | - | - | Processamento de tarefas agendadas (`schedule:work`) |
+| **pgsql** | `8006` | `5432` | Banco de dados PostgreSQL 17 |
+| **redis** | `8005` | `6379` | Cache, locks distribuídos e filas |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
+## 🛠️ Como Subir o Projeto Localmente
+
+### Pré-requisitos
+* [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados.
+
+### 1. Clonar e Configurar Variáveis de Ambiente
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+cp .env.example .env
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Edite o arquivo `.env` para ajustar senhas e configurações, principalmente:
+```dotenv
+SUPER_ADMIN_PASSWORD="sua-senha-segura-aqui"
+CENTRAL_DOMAINS="127.0.0.1,localhost"
+```
 
-## Contributing
+### 2. Construir e Iniciar os Containers
+```bash
+docker compose up -d --build
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+O entrypoint executará automaticamente as migrations centrais com lock distribuído e a sincronização das roles e permissions.
 
-## Code of Conduct
+### 3. Gerar Chaves da Aplicação e JWT
+```bash
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan jwt:secret
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Semear o Super Administrador
+Para criar o primeiro usuário super-admin com base nas variáveis do `.env`:
+```bash
+docker compose exec app php artisan db:seed --class=Database\\Seeders\\Central\\SuperAdminSeeder
+```
 
-## Security Vulnerabilities
+Ou crie novos usuários de forma interativa pelo console:
+```bash
+docker compose exec app php artisan user:create
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 📖 Documentação da API
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+A documentação OpenAPI interativa é gerada automaticamente pelo **Scramble** e fica disponível em:
+
+👉 **[http://localhost:8001/docs/api](http://localhost:8001/docs/api)**
+
+### Fluxo de Autenticação
+1. Realize a autenticação em `POST /api/v1/auth/login` informando `email` e `password`.
+2. Inclua o token retornado no cabeçalho das requisições subsequentes:
+   ```http
+   Authorization: Bearer {access_token}
+   ```
+
+---
+
+## 🔐 Níveis de Acesso e Permissões (RBAC)
+
+O sistema possui controle hierárquico onde usuários só podem gerenciar contas de nível igual ou inferior ao seu:
+
+| Role | Nível | Permissões |
+| :--- | :---: | :--- |
+| **`super-admin`** | 3 | Acesso irrestrito a todas as operações (incluindo exclusão definitiva). |
+| **`admin`** | 2 | Gerenciamento completo de usuários, tenants e domínios, exceto exclusão (`*.delete`). |
+| **`employee`** | 1 | Apenas visualização (`*.view`). |
+
+> **Nota:** Políticas de segurança impedem que qualquer usuário desative ou exclua a própria conta.
+
+---
+
+## 🧪 Qualidade de Código e Testes
+
+### Executar a Suíte de Testes (Pest)
+```bash
+docker compose exec app php artisan test
+```
+
+### Análise Estática (PHPStan / Larastan)
+```bash
+docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=512M
+```
+
+### Formatação de Código (Laravel Pint)
+```bash
+docker compose exec app ./vendor/bin/pint
+```
+Para apenas validar sem alterar arquivos:
+```bash
+docker compose exec app ./vendor/bin/pint --test
+```
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença [MIT](https://opensource.org/licenses/MIT).
+
