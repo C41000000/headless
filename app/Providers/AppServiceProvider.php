@@ -38,6 +38,14 @@ class AppServiceProvider extends ServiceProvider
         $this->configureApiResponses();
         $this->configureSecurity();
         $this->configureRateLimiting();
+        $this->configureUrls();
+    }
+
+    private function configureUrls(): void
+    {
+        URL::defaults([
+            'tenant_domain' => request()?->getHost() ?? 'tenant.localhost',
+        ]);
     }
 
     private function configureModels(): void

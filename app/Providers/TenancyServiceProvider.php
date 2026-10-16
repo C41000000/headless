@@ -33,7 +33,7 @@ class TenancyServiceProvider extends ServiceProvider
                     fn () => JobPipeline::make([
                         Jobs\CreateDatabase::class,
                         Jobs\MigrateDatabase::class,
-                        // Jobs\SeedDatabase::class,
+                        Jobs\SeedDatabase::class,
                     ])->send(function (Events\TenantCreated $event) {
                         return $event->tenant;
                     })->shouldBeQueued(false)->toListener()($event), // `false` by default, but you probably want to make this `true` for production.
@@ -103,6 +103,8 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
+
+        Middleware\InitializeTenancyByDomain::$onFail = fn () => abort(404);
     }
 
     protected function bootEvents()
