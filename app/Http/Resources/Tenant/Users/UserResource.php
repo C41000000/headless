@@ -40,6 +40,20 @@ class UserResource extends JsonResource
              */
             'is_active' => $this->is_active,
             /**
+             * Papel do usuário no tenant (o de maior nível). Null quando não tem papel.
+             *
+             * @example employee
+             */
+            'role' => $this->resource->highestRole()?->value,
+            /**
+             * O que o usuário autenticado pode fazer com este usuário, segundo as permissions e a hierarquia.
+             */
+            'abilities' => $this->when($request->user() instanceof User, fn () => [
+                'update' => $request->user()->can('update', $this->resource),
+                'toggle_status' => $request->user()->can('toggleStatus', $this->resource),
+                'delete' => $request->user()->can('delete', $this->resource),
+            ]),
+            /**
              * Data de criação.
              */
             'created_at' => $this->created_at,

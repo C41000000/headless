@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant\Users;
 
+use App\Models\Tenant\User;
+use App\Support\Enums\Tenant\RoleName;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,6 +44,23 @@ class UpdateUserRequest extends FormRequest
              * @example true
              */
             'is_active' => ['sometimes', 'boolean'],
+            /**
+             * Novo papel. Só é possível atribuir papéis de nível igual ou menor que o seu, e ninguém altera o próprio papel.
+             *
+             * @example admin
+             */
+            'role' => [
+                'sometimes',
+                Rule::enum(RoleName::class),
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $target = $this->route('user');
+
+                    // Evita alguém se rebaixar (ou o último admin sumir) sem querer
+                    if ($target instanceof User && $target->is($this->user()) && $target->highestRole()?->value !== $value) {
+                        $fail('Você não pode alterar o seu próprio papel.');
+                    }
+                },
+            ],
         ];
     }
 }

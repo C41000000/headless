@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use App\Policies\Tenant\UserPolicy;
+use App\Support\Enums\Tenant\RoleName;
 use App\Support\Traits\HasPublicUuid;
 use Database\Factories\Tenant\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -57,6 +58,24 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Papel de maior nível do usuário no tenant. Null quando não tem nenhuma role conhecida.
+     */
+    public function highestRole(): ?RoleName
+    {
+        // loadMissing evita LazyLoadingViolation quando o model veio de uma coleção
+        return $this->loadMissing('roles')->getRoleNames()
+            ->map(fn (string $name) => RoleName::tryFrom($name))
+            ->filter()
+            ->sortByDesc(fn (RoleName $role) => $role->level())
+            ->first();
+    }
+
+    public function roleLevel(): int
+    {
+        return $this->highestRole()?->level() ?? 0;
     }
 
     public function getJWTIdentifier(): mixed

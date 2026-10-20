@@ -118,6 +118,7 @@ it('requires users.create permission to create users in tenant', function () {
             'name' => 'Novo Funcionário',
             'email' => 'novo@empresa.com',
             'password' => 'password123',
+            'role' => RoleName::Employee->value,
         ])
         ->assertForbidden();
 });
@@ -134,6 +135,7 @@ it('lets a tenant admin create users in the tenant', function () {
             'name' => 'Novo Funcionário',
             'email' => 'novo@empresa.com',
             'password' => 'password123',
+            'role' => RoleName::Employee->value,
         ])
         ->assertCreated()
         ->assertJsonPath('email', 'novo@empresa.com')

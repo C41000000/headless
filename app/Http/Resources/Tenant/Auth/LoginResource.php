@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Resources\Tenant\Auth;
 
 use App\DTOs\Tenant\Auth\LoginResultDTO;
-use App\Http\Resources\Tenant\Users\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -46,7 +45,7 @@ class LoginResource extends JsonResource
             /**
              * Dados do usuário autenticado no tenant.
              */
-            'user' => UserResource::make($this->resource->user),
+            'user' => AuthUserResource::make($this->resource->user),
         ];
     }
 }

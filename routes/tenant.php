@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\Auth\LoginController;
+use App\Http\Controllers\Tenant\Auth\ShowAuthenticatedUserController;
 use App\Http\Controllers\Tenant\Banners\DeleteBannerController;
 use App\Http\Controllers\Tenant\Banners\IndexBannerController;
 use App\Http\Controllers\Tenant\Banners\IndexPublicBannerController;
@@ -46,6 +47,8 @@ Route::domain('{tenant_domain}')
         Route::get('banners', IndexPublicBannerController::class)->name('banners.index');
 
         Route::middleware('auth:tenant_api')->group(function () {
+            Route::get('auth/me', ShowAuthenticatedUserController::class)->name('auth.me');
+
             // Gestão de usuários do tenant
             Route::get('users', IndexUserController::class)->name('users.index');
             Route::post('users', StoreUserController::class)->name('users.store');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTOs\Tenant\Users;
 
+use App\Support\Enums\Tenant\RoleName;
 use Spatie\LaravelData\Data;
 
 /**
@@ -15,5 +16,6 @@ final class CreateUserDTO extends Data
         public readonly string $email,
         public readonly string $password,
         public readonly string $name,
+        public readonly ?RoleName $role = null,
     ) {}
 }

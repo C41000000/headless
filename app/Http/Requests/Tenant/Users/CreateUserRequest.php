@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant\Users;
 
+use App\Support\Enums\Tenant\RoleName;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateUserRequest extends FormRequest
 {
@@ -34,6 +36,12 @@ class CreateUserRequest extends FormRequest
              * @example joao@empresa.com
              */
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            /**
+             * Papel do usuário no tenant. Só é possível atribuir papéis de nível igual ou menor que o seu (admin > employee).
+             *
+             * @example employee
+             */
+            'role' => ['required', Rule::enum(RoleName::class)],
         ];
     }
 }
