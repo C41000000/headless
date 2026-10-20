@@ -33,6 +33,8 @@ enum RoleName: string
 
             self::Employee => [
                 PermissionName::UsersView,
+                PermissionName::VisualIdentityView,
+                PermissionName::BannersView,
             ],
         };
     }

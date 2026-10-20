@@ -6,6 +6,7 @@ namespace Tests;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
@@ -30,5 +31,24 @@ abstract class TestCase extends BaseTestCase
         if ($database !== ':memory:' && ! str_contains($database, 'test')) {
             throw new RuntimeException("Testes abortados: o banco [{$database}] não parece ser de teste.");
         }
+    }
+
+    protected function tearDown(): void
+    {
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            tenancy()->end();
+        }
+
+        DB::purge('tenant');
+
+        if ($this->app && $this->app->environment('testing')) {
+            foreach (glob(database_path('tenant*')) as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
+            }
+        }
+
+        parent::tearDown();
     }
 }

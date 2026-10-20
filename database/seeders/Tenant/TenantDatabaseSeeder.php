@@ -18,6 +18,7 @@ class TenantDatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndPermissionsSeeder::class,
+            VisualIdentitySeeder::class,
         ]);
     }
 }

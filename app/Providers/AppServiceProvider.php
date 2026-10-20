@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
     private function configureUrls(): void
     {
         URL::defaults([
-            'tenant_domain' => request()?->getHost() ?? 'tenant.localhost',
+            'tenant_domain' => request()->getHost(),
         ]);
     }
 
