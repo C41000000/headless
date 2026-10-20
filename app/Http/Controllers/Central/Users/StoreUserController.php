@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\Users\CreateUserRequest;
 use App\Http\Resources\Central\Users\UserResource;
 use App\Models\User;
+use App\Support\Enums\RoleName;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,13 +20,13 @@ class StoreUserController extends Controller
     /**
      * Criar usuário
      *
-     * Cria um usuário ativo no banco central, sem role.
+     * Cria um usuário ativo no banco central com o papel informado (de nível igual ou menor que o seu).
      *
-     * Requer a permission `users.create`.
+     * Requer a permission `users.create`. Atribuir um papel acima do seu retorna 403.
      */
     public function __invoke(CreateUserRequest $request, CreateUserAction $action): UserResource
     {
-        Gate::authorize('create', User::class);
+        Gate::authorize('create', [User::class, $request->enum('role', RoleName::class)]);
 
         $user = $action->execute(CreateUserDTO::from($request->validated()));
 

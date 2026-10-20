@@ -6,6 +6,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Policies\Central\UserPolicy;
+use App\Support\Enums\RoleName;
 use App\Support\Traits\HasPublicUuid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -43,6 +44,25 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Papel de maior nível do usuário (a hierarquia considera sempre o maior).
+     * Null quando não tem nenhuma role conhecida.
+     */
+    public function highestRole(): ?RoleName
+    {
+        // loadMissing evita LazyLoadingViolation quando o model veio de uma coleção
+        return $this->loadMissing('roles')->getRoleNames()
+            ->map(fn (string $name) => RoleName::tryFrom($name))
+            ->filter()
+            ->sortByDesc(fn (RoleName $role) => $role->level())
+            ->first();
+    }
+
+    public function roleLevel(): int
+    {
+        return $this->highestRole()?->level() ?? 0;
     }
 
     public function getJWTIdentifier(): mixed

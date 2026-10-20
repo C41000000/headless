@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central\Users;
 
+use App\Support\Enums\RoleName;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateUserRequest extends FormRequest
 {
@@ -29,6 +31,12 @@ class CreateUserRequest extends FormRequest
              * @example maria@example.com
              */
             'email' => ['required', 'string', 'email', 'unique:users,email'],
+            /**
+             * Papel do usuário. Só é possível atribuir papéis de nível igual ou menor que o seu (super-admin > admin > employee).
+             *
+             * @example employee
+             */
+            'role' => ['required', Rule::enum(RoleName::class)],
         ];
     }
 

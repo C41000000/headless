@@ -57,6 +57,7 @@ it('requires the users.create permission to create users', function () {
             'name' => 'Novo Usuário',
             'email' => 'novo@example.com',
             'password' => 'password123',
+            'role' => RoleName::Employee->value,
         ])
         ->assertForbidden();
 });
@@ -69,6 +70,7 @@ it('lets a super admin create users', function () {
             'name' => 'Novo Usuário',
             'email' => 'novo@example.com',
             'password' => 'password123',
+            'role' => RoleName::Employee->value,
         ])
         ->assertCreated()
         ->assertJsonPath('email', 'novo@example.com');

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Central\Auth\LoginController;
+use App\Http\Controllers\Central\Auth\ShowAuthenticatedUserController;
 use App\Http\Controllers\Central\Domains\DeleteDomainController;
 use App\Http\Controllers\Central\Domains\IndexDomainController;
 use App\Http\Controllers\Central\Domains\ShowDomainController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Central\Tenants\ShowTenantController;
 use App\Http\Controllers\Central\Tenants\StoreTenantController;
 use App\Http\Controllers\Central\Tenants\UpdateTenantController;
 use App\Http\Controllers\Central\Users\DeleteUserController;
+use App\Http\Controllers\Central\Users\IndexUserController;
 use App\Http\Controllers\Central\Users\ShowUserController;
 use App\Http\Controllers\Central\Users\StoreUserController;
 use App\Http\Controllers\Central\Users\ToggleUserStatusController;
@@ -27,6 +29,9 @@ Route::prefix('v1')->name('v1.')->middleware(EnsureCentralDomain::class)->group(
         ->name('central.auth.login');
 
     Route::middleware('auth:api')->group(function () {
+        Route::get('auth/me', ShowAuthenticatedUserController::class)->name('central.auth.me');
+
+        Route::get('users', IndexUserController::class)->name('central.users.index');
         Route::post('users', StoreUserController::class)->name('central.users.store');
         Route::patch('users/{user}', UpdateUserController::class)->name('central.users.update');
         Route::get('users/{user}', ShowUserController::class)->name('central.users.show');

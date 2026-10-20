@@ -6,11 +6,20 @@ namespace App\Actions\Central\Users;
 
 use App\DTOs\Central\Users\UpdateUserDTO;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Spatie\LaravelData\Optional;
 
 final readonly class UpdateUserAction
 {
     public function execute(User $user, UpdateUserDTO $dto): void
     {
-        $user->update($dto->toArray());
+        DB::transaction(function () use ($user, $dto): void {
+            $user->update($dto->except('role')->toArray());
+
+            // Um papel por usuário: a nova role substitui as anteriores
+            if (! $dto->role instanceof Optional) {
+                $user->syncRoles([$dto->role->value]);
+            }
+        });
     }
 }

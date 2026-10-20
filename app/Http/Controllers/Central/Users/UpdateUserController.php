@@ -9,6 +9,7 @@ use App\DTOs\Central\Users\UpdateUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\Users\UpdateUserRequest;
 use App\Models\User;
+use App\Support\Enums\RoleName;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
@@ -21,11 +22,12 @@ class UpdateUserController extends Controller
      *
      * Atualiza apenas os campos enviados.
      *
-     * Requer a permission `users.update` e respeita a hierarquia: super-admin só é editado por super-admin; admin, por admin ou super-admin.
+     * Requer a permission `users.update` e respeita a hierarquia: super-admin só é editado por super-admin; admin, por admin ou super-admin. Também não é possível atribuir um papel acima do seu.
      */
     public function __invoke(User $user, UpdateUserRequest $request, UpdateUserAction $action): Response
     {
-        Gate::authorize('update', $user);
+        Gate::authorize('update', [$user, $request->enum('role', RoleName::class)]);
+
         $action->execute($user, UpdateUserDTO::from($request->validated()));
 
         return response()->noContent();

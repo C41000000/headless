@@ -9,8 +9,6 @@ use App\DTOs\Central\Users\CreateUserDTO;
 use App\Http\Requests\Central\Users\CreateUserRequest;
 use App\Support\Enums\RoleName;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -52,15 +50,7 @@ final class CreateUserCommand extends Command
 
         $data = $validator->validated();
 
-        $user = DB::transaction(function () use ($action, $data) {
-            $user = $action->execute(CreateUserDTO::from(Arr::except($data, 'role')));
-
-            if (filled($data['role'] ?? null)) {
-                $user->assignRole($data['role']);
-            }
-
-            return $user;
-        });
+        $user = $action->execute(CreateUserDTO::from($data));
 
         $this->components->info("Usuário {$user->email} criado (uuid: {$user->uuid}).");
 

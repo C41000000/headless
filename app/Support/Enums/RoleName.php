@@ -24,6 +24,16 @@ enum RoleName: string
     }
 
     /**
+     * Roles que alguém do nível informado pode atribuir: só as de nível igual ou menor.
+     *
+     * @return list<self>
+     */
+    public static function assignableUpTo(int $level): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $role) => $role->level() <= $level));
+    }
+
+    /**
      * Listas explícitas (exceto o super-admin): uma permission nova só chega ao
      * admin ou ao funcionário quando for adicionada aqui de propósito.
      *

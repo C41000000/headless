@@ -29,18 +29,20 @@ class UserPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?RoleName $role = null): bool
     {
-        return $user->checkPermissionTo(PermissionName::UsersCreate);
+        return $user->checkPermissionTo(PermissionName::UsersCreate)
+            && $this->canAssign($user, $role);
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user, User $model, ?RoleName $role = null): bool
     {
         return $user->checkPermissionTo(PermissionName::UsersUpdate)
-            && $this->outranksOrEquals($user, $model);
+            && $this->outranksOrEquals($user, $model)
+            && $this->canAssign($user, $role);
     }
 
     /**
@@ -68,16 +70,16 @@ class UserPolicy
     /**
      * Super admin só é gerenciado por super admin; admin, por admin ou super admin.
      */
-    private function outranksOrEquals(User $user, User $model): bool
+    /**
+     * Só se atribui papel de nível igual ou menor que o próprio: admin não promove ninguém a super-admin.
+     */
+    private function canAssign(User $user, ?RoleName $role): bool
     {
-        return $this->level($user) >= $this->level($model);
+        return $role === null || $role->level() <= $user->roleLevel();
     }
 
-    private function level(User $user): int
+    private function outranksOrEquals(User $user, User $model): bool
     {
-        // loadMissing evita LazyLoadingViolation quando o model veio de uma coleção
-        return $user->loadMissing('roles')->getRoleNames()
-            ->map(fn (string $name) => RoleName::tryFrom($name)?->level() ?? 0)
-            ->max() ?? 0;
+        return $user->roleLevel() >= $model->roleLevel();
     }
 }
