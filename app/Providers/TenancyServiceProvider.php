@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\PermissionRegistrar;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
@@ -78,9 +79,18 @@ class TenancyServiceProvider extends ServiceProvider
             ],
 
             Events\BootstrappingTenancy::class => [],
-            Events\TenancyBootstrapped::class => [],
+            // O spatie/laravel-permission guarda as permissions numa chave de cache e numa
+            // coleção em memória únicas. Sem trocar a chave por tenant, o tenant enxerga as
+            // permissions do central (guard `api`) e todo checkPermissionTo dá falso (403).
+            Events\TenancyBootstrapped::class => [
+                fn (Events\TenancyBootstrapped $event) => self::usePermissionCacheKey(
+                    config('permission.cache.key').'.tenant.'.$event->tenancy->tenant?->getTenantKey(),
+                ),
+            ],
             Events\RevertingToCentralContext::class => [],
-            Events\RevertedToCentralContext::class => [],
+            Events\RevertedToCentralContext::class => [
+                fn () => self::usePermissionCacheKey(config('permission.cache.key')),
+            ],
 
             // Resource syncing
             Events\SyncedResourceSaved::class => [
@@ -90,6 +100,13 @@ class TenancyServiceProvider extends ServiceProvider
             // Fired only when a synced resource is changed in a different DB than the origin DB (to avoid infinite loops)
             Events\SyncedResourceChangedInForeignDatabase::class => [],
         ];
+    }
+
+    private static function usePermissionCacheKey(string $key): void
+    {
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->cacheKey = $key;
+        $registrar->clearPermissionsCollection();
     }
 
     public function register()
