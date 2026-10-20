@@ -34,6 +34,17 @@ class DomainRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'domain.required' => 'O domínio é obrigatório.',
+            'domain.unique' => 'Este domínio já está em uso na plataforma.',
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         if (is_string($this->input('domain'))) {

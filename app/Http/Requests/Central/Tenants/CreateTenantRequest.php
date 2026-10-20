@@ -33,6 +33,22 @@ class CreateTenantRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'O nome do tenant é obrigatório.',
+            'name.max' => 'O nome não pode ter mais de 255 caracteres.',
+            'domains.required' => 'Ao menos um domínio deve ser informado.',
+            'domains.min' => 'Ao menos um domínio deve ser informado.',
+            'domains.*.required' => 'O domínio é obrigatório.',
+            'domains.*.distinct' => 'Os domínios informados não podem ser repetidos.',
+            'domains.*.unique' => 'Este domínio já está em uso na plataforma.',
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         if (is_array($this->input('domains'))) {
