@@ -107,6 +107,26 @@ it('lists tenants paginated with their domains', function () {
         ->assertJsonStructure(['data' => [['uuid', 'name', 'domains' => [['uuid', 'domain']]]], 'meta', 'links']);
 });
 
+it('filters tenants by name or domain', function () {
+    actingAsRole(RoleName::Employee);
+    tenantWithDomains('a.app.com')->update(['name' => 'Gama Ltda.']);
+    tenantWithDomains('loja-beta.app.com')->update(['name' => 'Beta']);
+    tenantWithDomains('c.app.com')->update(['name' => 'Delta']);
+
+    $this->getJson('/api/v1/tenants?search=gama')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Gama Ltda.');
+
+    $this->getJson('/api/v1/tenants?search=LOJA-')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Beta')
+        ->assertJsonPath('meta.total', 1);
+
+    $this->getJson('/api/v1/tenants?search=')->assertOk()->assertJsonCount(3, 'data');
+});
+
 it('shows and updates a tenant', function () {
     actingAsRole(RoleName::Admin);
     $tenant = tenantWithDomains('a.app.com');
