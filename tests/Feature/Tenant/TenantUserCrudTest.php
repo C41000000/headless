@@ -92,7 +92,7 @@ it('returns the authenticated tenant user with role and permissions', function (
         ->assertOk()
         ->assertJsonPath('name', 'Carla')
         ->assertJsonPath('role', 'employee')
-        ->assertJsonPath('permissions', ['banners.view', 'categories.view', 'products.view', 'users.view', 'visual-identity.view']);
+        ->assertJsonPath('permissions', ['banners.view', 'categories.view', 'orders.update', 'orders.view', 'products.view', 'users.view', 'visual-identity.view']);
 });
 
 it('includes role and permissions in the tenant login response', function () {

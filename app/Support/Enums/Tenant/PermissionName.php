@@ -29,4 +29,7 @@ enum PermissionName: string
     case ProductsCreate = 'products.create';
     case ProductsUpdate = 'products.update';
     case ProductsDelete = 'products.delete';
+
+    case OrdersView = 'orders.view';
+    case OrdersUpdate = 'orders.update';
 }

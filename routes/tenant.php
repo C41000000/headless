@@ -16,6 +16,11 @@ use App\Http\Controllers\Tenant\Categories\IndexPublicCategoryController;
 use App\Http\Controllers\Tenant\Categories\ShowCategoryController;
 use App\Http\Controllers\Tenant\Categories\StoreCategoryController;
 use App\Http\Controllers\Tenant\Categories\UpdateCategoryController;
+use App\Http\Controllers\Tenant\Orders\IndexOrderController;
+use App\Http\Controllers\Tenant\Orders\ShowOrderController;
+use App\Http\Controllers\Tenant\Orders\ShowPublicOrderController;
+use App\Http\Controllers\Tenant\Orders\StorePublicOrderController;
+use App\Http\Controllers\Tenant\Orders\UpdateOrderStatusController;
 use App\Http\Controllers\Tenant\Products\DeleteProductController;
 use App\Http\Controllers\Tenant\Products\IndexProductController;
 use App\Http\Controllers\Tenant\Products\IndexPublicProductController;
@@ -64,6 +69,10 @@ Route::domain('{tenant_domain}')
         Route::get('products', IndexPublicProductController::class)->name('products.public.index');
         Route::get('products/{slug}', ShowPublicProductController::class)->name('products.public.show');
 
+        // Endpoints públicos de pedidos (Checkout e Consulta)
+        Route::post('orders', StorePublicOrderController::class)->name('orders.public.store');
+        Route::get('orders/{order}', ShowPublicOrderController::class)->name('orders.public.show');
+
         Route::middleware('auth:tenant_api')->group(function () {
             Route::get('auth/me', ShowAuthenticatedUserController::class)->name('auth.me');
 
@@ -99,5 +108,10 @@ Route::domain('{tenant_domain}')
             Route::get('admin/products/{product}', ShowProductController::class)->name('admin.products.show');
             Route::patch('admin/products/{product}', UpdateProductController::class)->name('admin.products.update');
             Route::delete('admin/products/{product}', DeleteProductController::class)->name('admin.products.destroy');
+
+            // Gestão de pedidos (Admin)
+            Route::get('admin/orders', IndexOrderController::class)->name('admin.orders.index');
+            Route::get('admin/orders/{order}', ShowOrderController::class)->name('admin.orders.show');
+            Route::patch('admin/orders/{order}/status', UpdateOrderStatusController::class)->name('admin.orders.status');
         });
     });

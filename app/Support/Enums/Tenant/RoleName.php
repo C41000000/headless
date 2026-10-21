@@ -37,6 +37,8 @@ enum RoleName: string
                 PermissionName::BannersView,
                 PermissionName::CategoriesView,
                 PermissionName::ProductsView,
+                PermissionName::OrdersView,
+                PermissionName::OrdersUpdate,
             ],
         };
     }
