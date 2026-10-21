@@ -35,6 +35,8 @@ enum RoleName: string
                 PermissionName::UsersView,
                 PermissionName::VisualIdentityView,
                 PermissionName::BannersView,
+                PermissionName::CategoriesView,
+                PermissionName::ProductsView,
             ],
         };
     }

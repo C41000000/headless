@@ -10,6 +10,19 @@ use App\Http\Controllers\Tenant\Banners\IndexPublicBannerController;
 use App\Http\Controllers\Tenant\Banners\ShowBannerController;
 use App\Http\Controllers\Tenant\Banners\StoreBannerController;
 use App\Http\Controllers\Tenant\Banners\UpdateBannerController;
+use App\Http\Controllers\Tenant\Categories\DeleteCategoryController;
+use App\Http\Controllers\Tenant\Categories\IndexCategoryController;
+use App\Http\Controllers\Tenant\Categories\IndexPublicCategoryController;
+use App\Http\Controllers\Tenant\Categories\ShowCategoryController;
+use App\Http\Controllers\Tenant\Categories\StoreCategoryController;
+use App\Http\Controllers\Tenant\Categories\UpdateCategoryController;
+use App\Http\Controllers\Tenant\Products\DeleteProductController;
+use App\Http\Controllers\Tenant\Products\IndexProductController;
+use App\Http\Controllers\Tenant\Products\IndexPublicProductController;
+use App\Http\Controllers\Tenant\Products\ShowProductController;
+use App\Http\Controllers\Tenant\Products\ShowPublicProductController;
+use App\Http\Controllers\Tenant\Products\StoreProductController;
+use App\Http\Controllers\Tenant\Products\UpdateProductController;
 use App\Http\Controllers\Tenant\Users\DeleteUserController;
 use App\Http\Controllers\Tenant\Users\IndexUserController;
 use App\Http\Controllers\Tenant\Users\ShowUserController;
@@ -46,6 +59,11 @@ Route::domain('{tenant_domain}')
         Route::get('visual-identity', ShowPublicVisualIdentityController::class)->name('visual-identity.show');
         Route::get('banners', IndexPublicBannerController::class)->name('banners.index');
 
+        // Endpoints públicos de catálogo (vitrine)
+        Route::get('categories', IndexPublicCategoryController::class)->name('categories.public.index');
+        Route::get('products', IndexPublicProductController::class)->name('products.public.index');
+        Route::get('products/{slug}', ShowPublicProductController::class)->name('products.public.show');
+
         Route::middleware('auth:tenant_api')->group(function () {
             Route::get('auth/me', ShowAuthenticatedUserController::class)->name('auth.me');
 
@@ -67,5 +85,19 @@ Route::domain('{tenant_domain}')
             Route::get('admin/banners/{banner}', ShowBannerController::class)->name('admin.banners.show');
             Route::patch('admin/banners/{banner}', UpdateBannerController::class)->name('admin.banners.update');
             Route::delete('admin/banners/{banner}', DeleteBannerController::class)->name('admin.banners.destroy');
+
+            // Gestão de categorias (Admin)
+            Route::get('admin/categories', IndexCategoryController::class)->name('admin.categories.index');
+            Route::post('admin/categories', StoreCategoryController::class)->name('admin.categories.store');
+            Route::get('admin/categories/{category}', ShowCategoryController::class)->name('admin.categories.show');
+            Route::patch('admin/categories/{category}', UpdateCategoryController::class)->name('admin.categories.update');
+            Route::delete('admin/categories/{category}', DeleteCategoryController::class)->name('admin.categories.destroy');
+
+            // Gestão de produtos (Admin)
+            Route::get('admin/products', IndexProductController::class)->name('admin.products.index');
+            Route::post('admin/products', StoreProductController::class)->name('admin.products.store');
+            Route::get('admin/products/{product}', ShowProductController::class)->name('admin.products.show');
+            Route::patch('admin/products/{product}', UpdateProductController::class)->name('admin.products.update');
+            Route::delete('admin/products/{product}', DeleteProductController::class)->name('admin.products.destroy');
         });
     });

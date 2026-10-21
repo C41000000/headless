@@ -19,4 +19,14 @@ enum PermissionName: string
     case BannersCreate = 'banners.create';
     case BannersUpdate = 'banners.update';
     case BannersDelete = 'banners.delete';
+
+    case CategoriesView = 'categories.view';
+    case CategoriesCreate = 'categories.create';
+    case CategoriesUpdate = 'categories.update';
+    case CategoriesDelete = 'categories.delete';
+
+    case ProductsView = 'products.view';
+    case ProductsCreate = 'products.create';
+    case ProductsUpdate = 'products.update';
+    case ProductsDelete = 'products.delete';
 }
