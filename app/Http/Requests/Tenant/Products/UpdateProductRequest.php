@@ -72,7 +72,7 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             function (Validator $validator) {
-                if ($this->has('promotional_price') && ! empty($this->input('promotional_price'))) {
+                if ($this->filled('promotional_price')) {
                     $product = $this->route('product');
                     $price = $this->input('price') ?? ($product?->price);
 

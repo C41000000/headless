@@ -47,7 +47,7 @@ class StoreProductRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->whereNull('deleted_at')],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'numeric', 'min:0'],
-            'promotional_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
+            'promotional_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'sku' => ['nullable', 'string', 'max:100'],
             'image_url' => ['nullable', 'string', 'url', 'max:2048'],
@@ -55,6 +55,22 @@ class StoreProductRequest extends FormRequest
             'is_featured' => ['nullable', 'boolean'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'category_uuid' => ['nullable', 'string'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (\Illuminate\Validation\Validator $validator) {
+                if ($this->filled('promotional_price') && $this->filled('price')) {
+                    if ((float) $this->input('promotional_price') >= (float) $this->input('price')) {
+                        $validator->errors()->add(
+                            'promotional_price',
+                            'O preço promocional deve ser menor que o preço original.'
+                        );
+                    }
+                }
+            },
         ];
     }
 
